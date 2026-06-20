@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" id="html-root">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bibook | مكتبتك الرقمية</title>
+    <meta name="description" content="Bibook - منصتك لاكتشاف وقراءة أفضل الكتب العربية والعالمية">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <span class="logo-icon">📚</span>
+                <span class="logo-text">Bibook</span>
+            </div>
+            <div class="nav-search">
+                <div class="search-wrapper">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="search-input" placeholder="ابحث عن كتاب أو مؤلف..." autocomplete="off">
+                    <button class="search-clear" id="search-clear" style="display:none">✕</button>
+                </div>
+            </div>
+            <div class="nav-actions">
+                <!-- User Auth Area -->
+                <div class="auth-area" id="auth-area">
+                    <button class="btn-primary btn-sm" id="btn-open-login">دخول</button>
+                    <button class="btn-outline btn-sm" id="btn-open-register">إنشاء حساب</button>
+                </div>
+                <div class="user-area" id="user-area" style="display: none;">
+                    <span class="user-greeting">مرحباً <strong id="user-name-display"></strong></span>
+                    <button class="btn-primary btn-sm" id="btn-open-add-book">➕ إضافة كتاب</button>
+                    <button class="btn-outline btn-sm" id="btn-logout">خروج</button>
+                </div>
+                <button class="nav-btn" id="theme-toggle" title="تبديل الثيم">🌙</button>
+                <button class="nav-btn lang-toggle" id="lang-toggle" title="Switch Language">EN</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero" id="hero">
+        <div class="hero-bg">
+            <div class="hero-orb orb-1"></div>
+            <div class="hero-orb orb-2"></div>
+            <div class="hero-orb orb-3"></div>
+        </div>
+        <div class="hero-content">
+            <div class="hero-badge">✨ منصة الكتب الرقمية</div>
+            <h1 class="hero-title">
+                اكتشف عالماً<br>
+                <span class="gradient-text">لا نهاية له</span>
+            </h1>
+            <p class="hero-subtitle">آلاف الكتب في متناول يدك — من الأدب إلى العلوم، من التاريخ إلى الفلسفة.</p>
+            <div class="hero-stats" id="hero-stats">
+                <div class="stat">
+                    <span class="stat-num" id="books-count">0</span>
+                    <span class="stat-label">كتاب متاح</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat">
+                    <span class="stat-num">5+</span>
+                    <span class="stat-label">تصنيفات</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat">
+                    <span class="stat-num">∞</span>
+                    <span class="stat-label">قراءة مجانية</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Filter Bar -->
+    <section class="filter-section">
+        <div class="container">
+            <div class="filter-header">
+                <h2 class="section-title">📖 مكتبة الكتب</h2>
+                <div class="sort-wrapper">
+                    <select id="sort-select" class="sort-select">
+                        <option value="default">ترتيب افتراضي</option>
+                        <option value="title">حسب العنوان</option>
+                        <option value="author">حسب المؤلف</option>
+                        <option value="category">حسب التصنيف</option>
+                    </select>
+                </div>
+            </div>
+            <div class="filter-chips" id="filter-chips">
+                <button class="chip active" data-category="all">الكل</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Books Grid -->
+    <section class="books-section">
+        <div class="container">
+            <!-- Loading State -->
+            <div class="loading-state" id="loading-state">
+                <div class="spinner"></div>
+                <p>جاري تحميل الكتب...</p>
+            </div>
+
+            <!-- Empty State -->
+            <div class="empty-state" id="empty-state" style="display:none">
+                <div class="empty-icon">📭</div>
+                <h3>لا توجد نتائج</h3>
+                <p>جرّب البحث بكلمات مختلفة أو اختر تصنيفاً آخر</p>
+                <button class="btn-primary" onclick="resetFilters()">عرض جميع الكتب</button>
+            </div>
+
+            <!-- Error State -->
+            <div class="error-state" id="error-state" style="display:none">
+                <div class="error-icon">⚠️</div>
+                <h3>حدث خطأ</h3>
+                <p id="error-message">تعذّر الاتصال بالخادم</p>
+                <button class="btn-primary" onclick="loadBooks()">إعادة المحاولة</button>
+            </div>
+
+            <!-- Books Grid -->
+            <div class="books-grid" id="books-container"></div>
+
+            <!-- Results count -->
+            <div class="results-info" id="results-info" style="display:none">
+                <span id="results-count"></span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Book Modal (View details) -->
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal" id="book-modal">
+            <button class="modal-close" id="modal-close">✕</button>
+            <div class="modal-content" id="modal-content"></div>
+        </div>
+    </div>
+
+    <!-- Auth Modal (Login / Register) -->
+    <div class="modal-overlay" id="auth-modal-overlay">
+        <div class="modal" id="auth-modal">
+            <button class="modal-close" id="auth-modal-close">✕</button>
+            <div class="modal-header">
+                <h2 id="auth-title">تسجيل الدخول</h2>
+            </div>
+            <div class="modal-body auth-body">
+                <form id="auth-form">
+                    <div class="form-group" id="group-name" style="display: none;">
+                        <label>الاسم</label>
+                        <input type="text" id="auth-name" class="form-control" placeholder="اسمك الكريم">
+                    </div>
+                    <div class="form-group">
+                        <label>البريد الإلكتروني</label>
+                        <input type="email" id="auth-email" class="form-control" placeholder="example@email.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label>كلمة المرور</label>
+                        <input type="password" id="auth-password" class="form-control" placeholder="••••••••" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary btn-full" id="auth-submit-btn">دخول</button>
+                    </div>
+                    <p class="auth-switch">
+                        <span id="auth-switch-text">ليس لديك حساب؟</span> 
+                        <a href="#" id="auth-switch-link">إنشاء حساب جديد</a>
+                    </p>
+                    <p id="auth-error" class="error-text" style="display: none;"></p>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Book Modal -->
+    <div class="modal-overlay" id="add-book-modal-overlay">
+        <div class="modal" id="add-book-modal">
+            <button class="modal-close" id="add-book-modal-close">✕</button>
+            <div class="modal-header">
+                <h2>إضافة كتاب جديد</h2>
+            </div>
+            <div class="modal-body">
+                <form id="add-book-form">
+                    <input type="hidden" id="add-language" name="language" value="ar">
+                    <div class="form-group">
+                        <label id="label-add-title">عنوان الكتاب *</label>
+                        <input type="text" id="add-title" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label id="label-add-author">اسم المؤلف *</label>
+                        <input type="text" id="add-author" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label id="label-add-category">التصنيف</label>
+                        <input type="text" id="add-category" class="form-control" placeholder="مثال: تاريخ، رواية، تطوير الذات">
+                    </div>
+                    <div class="form-group">
+                        <label id="label-add-cover">صورة الغلاف</label>
+                        <div class="drop-zone" id="drop-zone-cover">
+                            <span class="drop-zone-prompt" id="prompt-add-cover">اسحب الصورة هنا أو اضغط للاختيار</span>
+                            <input type="file" id="add-cover" name="coverFile" class="drop-zone-input" accept="image/*">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label id="label-add-pdf">ملف PDF *</label>
+                        <div class="drop-zone" id="drop-zone-pdf">
+                            <span class="drop-zone-prompt" id="prompt-add-pdf">اسحب ملف PDF هنا أو اضغط للاختيار</span>
+                            <input type="file" id="add-path" name="pdfFile" class="drop-zone-input" accept=".pdf" required>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary" id="btn-add-submit" style="width: 100%;">إضافة الكتاب</button>
+                    </div>
+                    <p id="add-error" class="error-text" style="display: none;"></p>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit/Vote Book Modal -->
+    <div class="modal-overlay" id="edit-book-modal-overlay">
+        <div class="modal" id="edit-book-modal">
+            <button class="modal-close" id="edit-book-modal-close">✕</button>
+            <div class="modal-header">
+                <h2>اقتراح تعديل (تصويت)</h2>
+            </div>
+            <div class="modal-body">
+                <p class="edit-hint">لتعديل بيانات الكتاب، يجب أن تحصل على 5 أصوات من المستخدمين بنفس التعديل المقترح.</p>
+                <form id="edit-book-form">
+                    <input type="hidden" id="edit-book-id">
+                    <div class="form-group">
+                        <label>العنوان الجديد *</label>
+                        <input type="text" id="edit-title" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>اسم المؤلف الجديد *</label>
+                        <input type="text" id="edit-author" class="form-control" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary btn-full" id="edit-submit-btn">إرسال التعديل / التصويت</button>
+                    </div>
+                    <p id="edit-msg" class="success-text" style="display: none; color: #4ade80; text-align: center; margin-top: 10px;"></p>
+                    <p id="edit-error" class="error-text" style="display: none;"></p>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-logo">
+                <span class="logo-icon">📚</span>
+                <span class="logo-text">Bibook</span>
+            </div>
+            <p class="footer-tagline">مكتبتك الرقمية المفضلة</p>
+            <p class="footer-copy">© 2026 Bibook. جميع الحقوق محفوظة.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Environment Variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Prisma
+/generated/prisma
+prisma/data.db
+prisma/data.db-journal
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Docker
+docker-compose.override.yml
+.docker-volumes/
+db-data/
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# User Uploads (uncomment to ignore uploaded files if desired)
+# public/Background-AR/*
+# public/Pages-AR/*
+# public/Background-EN/*
+# public/Pages-EN/*

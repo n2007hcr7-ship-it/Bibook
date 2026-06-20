@@ -1,0 +1,43 @@
+generator client {
+  provider   = "prisma-client-js"
+  engineType = "library"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id               String        @id @default(uuid())
+  email            String        @unique
+  name             String?
+  password         String
+  books            Book[]
+  approvedRequests EditRequest[] @relation("ApprovalRelation")
+  createdAt        DateTime      @default(now())
+}
+
+model Book {
+  id           Int      @id @default(autoincrement())
+  title        String   // اسم الكتاب (سواء كان بالعربي أو الإنجليزي)
+  author       String   // اسم الكاتب
+  language     String   // 'ar' أو 'en'
+  category     String?
+  coverUrl     String?
+  bookPath     String?
+  createdAt    DateTime @default(now())
+  authorId     String?
+  user         User?    @relation(fields: [authorId], references: [id])
+  editRequests EditRequest[]
+  @@unique([title, language])
+}
+
+model EditRequest {
+  id          Int      @id @default(autoincrement())
+  bookId      Int
+  book        Book     @relation(fields: [bookId], references: [id])
+  newTitle String
+  newAuthor String  // إضافة الكاتب  في طلب التعديل
+  approvals   User[]   @relation("ApprovalRelation")
+  status      String   @default("PENDING")
+}
