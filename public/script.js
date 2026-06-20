@@ -189,6 +189,9 @@ function applyLang(lang, reload = true) {
     document.getElementById('btn-open-register').textContent = t('register');
     document.getElementById('btn-open-add-book').textContent = t('addBook');
     document.getElementById('btn-logout').textContent = t('logout');
+    
+    const greetingText = document.getElementById('greeting-text');
+    if (greetingText) greetingText.textContent = t('greeting');
 
     // Hero
     document.querySelector('.hero-badge').innerHTML = t('heroBadge');

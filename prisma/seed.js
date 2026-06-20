@@ -54,8 +54,8 @@ async function main() {
       bookPath: '/Pages-AR/the-art-of-not-giving-a-fuck.pdf'
     },
     {
-        title: 'مثل الزارع',  
-        author: 'أوكتافيا باتلر',
+        title: 'هكذا تكلم زراديشت',  
+        author: 'فريدريش نيتشه',
         category: 'رواية',
         coverUrl: '/Background-AR/the-parable-of-the-sower.jpg',
         bookPath: '/Pages-AR/the-parable-of-the-sower.pdf'
