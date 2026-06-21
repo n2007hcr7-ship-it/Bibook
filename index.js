@@ -13,28 +13,10 @@ const jwt = require('jsonwebtoken');
 const multer = require('multer');
 
 // إعداد التخزين للملفات (Multer)
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    // نأخذ اللغة من الطلب (يجب أن يرسل الفرونت إند حقل اسمه 'language')
-    const lang = req.body.language || 'ar'; 
+const supabase = require('./config/supabase'); // تأكد من إنشاء هذا الملف
 
-    if (file.fieldname === 'coverFile') {
-      // توجيه غلاف الكتاب بناءً على اللغة
-      cb(null, lang === 'en' ? 'public/Background-EN/' : 'public/Background/');
-    } else if (file.fieldname === 'pdfFile') {
-      // توجيه ملف الـ PDF بناءً على اللغة
-      cb(null, lang === 'en' ? 'public/Pages-EN/' : 'public/Pages/');
-    } else {
-      cb(null, 'public/');
-    }
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const ext = path.extname(file.originalname);
-    cb(null, file.fieldname + '-' + uniqueSuffix + ext);
-  }
-});
-const upload = multer({ storage: storage });
+
+const upload = multer({ storage: multer.memoryStorage() }); // تخزين مؤقت في الرام للرفع السحابي
 
 // 1. مسار التسجيل (Register)
 app.post('/api/auth/register', async (req, res) => {
@@ -100,39 +82,46 @@ app.get('/api/books', async (req, res) => {
 app.use(passport.initialize());
 const authenticate = passport.authenticate('jwt', { session: false });
 
-// 2. مسار إضافة كتاب جديد (مع دعم رفع الملفات)
 app.post('/api/books', authenticate, upload.fields([{ name: 'coverFile', maxCount: 1 }, { name: 'pdfFile', maxCount: 1 }]), async (req, res) => {
-  const { title, author, category } = req.body;
-  const lang = req.body.language || 'ar';
-  let coverUrl = req.body.coverUrl;
-  if (req.files && req.files['coverFile']) {
-    coverUrl = (lang === 'en' ? '/Background-EN/' : '/Background/') + req.files['coverFile'][0].filename;
-  }
-
-  let bookPath = req.body.bookPath;
-  if (req.files && req.files['pdfFile']) {
-    bookPath = (lang === 'en' ? '/Pages-EN/' : '/Pages/') + req.files['pdfFile'][0].filename;
-  }
-
   try {
+    const { title, author, category, language } = req.body;
+    let bookPath = null;
+
+    // رفع ملف الـ PDF إلى Supabase
+    if (req.files && req.files['pdfFile']) {
+      const file = req.files['pdfFile'][0];
+      const fileName = `user-uploads/${Date.now()}_${file.originalname}`;
+      
+      const { data, error } = await supabase.storage
+        .from('books-bucket')
+        .upload(fileName, file.buffer, { contentType: 'application/pdf' });
+
+      if (error) throw error;
+      
+      // الحصول على الرابط السحابي
+      const { data: urlData } = supabase.storage.from('books-bucket').getPublicUrl(fileName);
+      bookPath = urlData.publicUrl;
+    }
+
+    // حفظ في قاعدة البيانات
     const newBook = await prisma.book.create({
       data: { 
         title, 
         author, 
         category, 
-        coverUrl, 
-        bookPath,
-        language: req.body.language || 'ar', // افتراضية للغة العربية
-        authorId: req.user.id // ربط الكتاب بالمستخدم الحالي
+        bookPath, 
+        language: language || 'ar',
+        authorId: req.user.id,
+        isSystemBook: false // كتاب مستخدم
       }
     });
+    
     res.status(201).json(newBook);
   } catch (err) {
-    console.error('خطأ في إضافة كتاب:', err);
-    res.status(500).json({ error: 'تعذر إضافة الكتاب' });
+    console.error('خطأ في الرفع:', err);
+    res.status(500).json({ error: 'تعذر رفع الكتاب' });
   }
 });
-
 // 2.5 مسار اقتراح تعديل على كتاب أو التصويت عليه
 app.post('/api/edit-requests/:bookId', authenticate, async (req, res) => {
   const userId = req.user.id;

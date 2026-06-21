@@ -23,6 +23,7 @@ model Book {
   author       String   // اسم الكاتب
   language     String   // 'ar' أو 'en'
   category     String?
+  isSystemBook Boolean  @default(false)
   coverUrl     String?
   bookPath     String?
   createdAt    DateTime @default(now())
