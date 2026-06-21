@@ -86,11 +86,12 @@ app.post('/api/books', authenticate, upload.fields([{ name: 'coverFile', maxCoun
   try {
     const { title, author, category, language } = req.body;
     let bookPath = null;
+    let coverUrl = null;  // ← جديد: لصورة الغلاف
 
-    // رفع ملف الـ PDF إلى Supabase
+    // 1. رفع ملف الـ PDF
     if (req.files && req.files['pdfFile']) {
       const file = req.files['pdfFile'][0];
-      const fileName = `user-uploads/${Date.now()}_${file.originalname}`;
+      const fileName = `user-uploads/pdfs/${Date.now()}_${file.originalname}`;
       
       const { data, error } = await supabase.storage
         .from('books-bucket')
@@ -98,21 +99,36 @@ app.post('/api/books', authenticate, upload.fields([{ name: 'coverFile', maxCoun
 
       if (error) throw error;
       
-      // الحصول على الرابط السحابي
       const { data: urlData } = supabase.storage.from('books-bucket').getPublicUrl(fileName);
       bookPath = urlData.publicUrl;
     }
 
-    // حفظ في قاعدة البيانات
+    // 2. رفع صورة الغلاف ← جديد كلياً
+    if (req.files && req.files['coverFile']) {
+      const file = req.files['coverFile'][0];
+      const fileName = `user-uploads/covers/${Date.now()}_${file.originalname}`;
+      
+      const { data, error } = await supabase.storage
+        .from('books-bucket')
+        .upload(fileName, file.buffer, { contentType: file.mimetype });
+
+      if (error) throw error;
+      
+      const { data: urlData } = supabase.storage.from('books-bucket').getPublicUrl(fileName);
+      coverUrl   = urlData.publicUrl;
+    }
+
+    // 3. حفظ في قاعدة البيانات
     const newBook = await prisma.book.create({
       data: { 
         title, 
         author, 
         category, 
         bookPath, 
+        coverUrl  ,        // ← جديد: حفظ رابط الصورة
         language: language || 'ar',
         authorId: req.user.id,
-        isSystemBook: false // كتاب مستخدم
+        isSystemBook: false
       }
     });
     
