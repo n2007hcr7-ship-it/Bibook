@@ -1,11 +1,9 @@
-// config/supabase.js
 const { createClient } = require('@supabase/supabase-js');
-require('dotenv').config();
 
-// تأكد من إضافة هذه المتغيرات في ملف .env الخاص بك
 const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabaseKey = process.env.SUPABASE_ANON_KEY;
 
-const supabase = createClient(supabaseUrl, supabaseKey);
+console.log('SUPABASE_URL:', supabaseUrl ? 'exists' : 'missing');
+console.log('SUPABASE_ANON_KEY:', supabaseKey ? 'exists' : 'missing');
 
-module.exports = supabase;
+module.exports = createClient(supabaseUrl, supabaseKey);
