@@ -14,8 +14,7 @@ let currentLang = localStorage.getItem('lang') || 'ar';
 // ---- API Base URL Configuration ----
 // Since the backend is hosted on Render, point the mobile app to the production URL
 const isMobileApp = window.location.protocol === 'file:' || window.location.protocol === 'capacitor:' || window.location.protocol.includes('ionic');
-const API_BASE = isMobileApp ? 'https://Bibook.onrender.com' : '';
-
+const API_BASE = 'https://bibook.onrender.com';
 function getFullUrl(path) {
     if (!path) return '';
     if (path.startsWith('http')) return path;
