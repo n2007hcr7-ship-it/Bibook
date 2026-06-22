@@ -11,6 +11,17 @@ let currentSearch = '';
 let currentSort = 'default';
 let currentLang = localStorage.getItem('lang') || 'ar';
 
+// ---- API Base URL Configuration ----
+// Since the backend is hosted on Render, point the mobile app to the production URL
+const isMobileApp = window.location.protocol === 'file:' || window.location.protocol === 'capacitor:' || window.location.protocol.includes('ionic');
+const API_BASE = isMobileApp ? 'https://Bibook.onrender.com' : '';
+
+function getFullUrl(path) {
+    if (!path) return '';
+    if (path.startsWith('http')) return path;
+    return API_BASE + path;
+}
+
 // ---- i18n Translations ----
 const i18n = {
     ar: {
@@ -338,7 +349,7 @@ authForm.addEventListener('submit', async (e) => {
     const password = document.getElementById('auth-password').value;
     const name = document.getElementById('auth-name').value;
 
-    const url = isLoginMode ? '/api/auth/login' : '/api/auth/register';
+    const url = isLoginMode ? API_BASE + '/api/auth/login' : API_BASE + '/api/auth/register';
     const body = isLoginMode ? { email, password } : { email, password, name };
 
     try {
@@ -401,7 +412,7 @@ addBookForm.addEventListener('submit', async (e) => {
     if (pdfFile) formData.append('pdfFile', pdfFile);
 
     try {
-        const res = await fetch('/api/books', {
+        const res = await fetch(API_BASE + '/api/books', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${authToken}`
@@ -508,7 +519,7 @@ editBookForm.addEventListener('submit', async (e) => {
     };
 
     try {
-        const res = await fetch(`/api/edit-requests/${bookId}`, {
+        const res = await fetch(`${API_BASE}/api/edit-requests/${bookId}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -539,7 +550,7 @@ async function deleteBook(bookId) {
     if (!confirm(t('deleteConfirm'))) return;
 
     try {
-        const res = await fetch(`/api/books/${bookId}`, {
+        const res = await fetch(`${API_BASE}/api/books/${bookId}`, {
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${authToken}` }
         });
@@ -572,7 +583,7 @@ async function loadBooks() {
     showState('loading');
 
     try {
-        const response = await fetch(`/api/books?lang=${currentLang}`);
+        const response = await fetch(`${API_BASE}/api/books?lang=${currentLang}`);
         if (!response.ok) throw new Error(`Server error: ${response.status}`);
         
         const books = await response.json();
@@ -719,7 +730,7 @@ function createBookCard(book, index) {
     card.innerHTML = `
         <div class="book-cover">
             ${actionButtons ? `<div class="book-card-actions">${actionButtons}</div>` : ''}
-            ${book.coverUrl ? `<img src="${book.coverUrl}" alt="${book.title}" loading="lazy" onerror="this.style.display='none';">` : getPlaceholderHTML(book)}
+            ${book.coverUrl ? `<img src="${getFullUrl(book.coverUrl)}" alt="${book.title}" loading="lazy" onerror="this.style.display='none';">` : getPlaceholderHTML(book)}
             ${book.category ? `<span class="book-category-badge">${book.category}</span>` : ''}
             <div class="book-overlay">
                 <button class="book-read-btn" onclick="openModal(${book.id})">${t('readBtn')}</button>
@@ -755,11 +766,11 @@ function openModal(bookId) {
     if (!book) return;
 
     const coverContent = book.coverUrl
-        ? `<img class="modal-cover" src="${book.coverUrl}" alt="${book.title}" onerror="this.outerHTML='<div class=\\'modal-cover-placeholder\\'>📖</div>'">`
+        ? `<img class="modal-cover" src="${getFullUrl(book.coverUrl)}" alt="${book.title}" onerror="this.outerHTML='<div class=\\'modal-cover-placeholder\\'>📖</div>'">`
         : `<div class="modal-cover-placeholder">📖</div>`;
 
     const readBtn = book.bookPath
-        ? `<a href="${book.bookPath}" target="_blank" class="btn-read">${t('readNow')}</a>`
+        ? `<a href="${getFullUrl(book.bookPath)}" target="_blank" class="btn-read">${t('readNow')}</a>`
         : `<button class="btn-read" style="opacity:0.6;cursor:default;">${t('notAvailable')}</button>`;
 
     modalContent.innerHTML = `

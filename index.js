@@ -4,7 +4,9 @@ const passport = require('passport');
 const { Strategy: JwtStrategy, ExtractJwt } = require('passport-jwt');
 const path = require('path');
 const prisma = require('./db');
+const cors = require('cors');
 const app = express();
+app.use(cors());
 app.use(express.json());
 const port = 3000;
 
@@ -294,5 +296,5 @@ app.delete('/api/books/:id', authenticate, async (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`المكتبة تعمل الآن بـ Prisma على الرابط: http://localhost:${port}`);
+  console.log(`المكتبة تعمل الآن بـ Prisma على الرابط: http://Bibook.onrender.com:${port}`);
 });
